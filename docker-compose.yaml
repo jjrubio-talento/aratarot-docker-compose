@@ -1,0 +1,51 @@
+version: '2'
+services:
+
+  sirius:
+    image: arasirius:0.1
+    environment:
+      - VIRTUAL_HOST=sirius.aratarot.com
+      - VIRTUAL_PORT=80
+      - VIRTUAL_NETWORK=nginxproxy
+      - LETSENCRYPT_HOST=sirius.aratarot.com
+      - LETSENCRYPT_EMAIL=jjrubio@talentosoftware.com
+
+  aratarot:
+    image: aratarot:0.1
+    environment:
+      - VIRTUAL_HOST=www.aratarot.com
+    volumes:
+      - /var/docker/aratarot.com/public_html:/var/www/html
+
+  nginxproxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    volumes:
+      - conf:/etc/nginx/conf.d
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - dhparam:/etc/nginx/dhparam
+      - certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    ports:
+     - "80:80"
+      - "443:443"
+        # network_mode: bridge
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-proxy-le
+    volumes_from:
+      - nginxproxy
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+        #network_mode: bridge
+
+volumes:
+  conf:
+  vhost:
+  html:
+  dhparam:
+  certs:
+ 
